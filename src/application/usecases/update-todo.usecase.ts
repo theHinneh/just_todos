@@ -3,12 +3,12 @@ import { TodoRepository } from '../../domain/ports/todo.repository';
 import { Todo } from '../../domain/entities/todo.entity';
 
 @Injectable()
-export class GetTodoUseCase {
+export class UpdateTodoUseCase {
   constructor(
     @Inject('TodoRepository') private readonly todoRepository: TodoRepository,
   ) {}
 
-  async execute(id: string): Promise<Todo | null> {
-    return this.todoRepository.findById(id);
+  async execute(id: string, todo: Partial<Todo>): Promise<Todo | null> {
+    return this.todoRepository.update(id, todo);
   }
 }

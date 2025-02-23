@@ -5,6 +5,8 @@ import { DatabaseTodoRepository } from './infrastructure/adapters/database/ports
 import { GetTodosUseCase } from './application/usecases/get-todos.usecase';
 import { CreateTodoUseCase } from './application/usecases/create-todo.usecase';
 import { TodoController } from './interfaces/controllers/todo.controller';
+import { GetTodoUseCase } from './application/usecases/get-todo.usecase';
+import { UpdateTodoUseCase } from './application/usecases/update-todo.usecase';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TodoEntity])],
@@ -14,8 +16,10 @@ import { TodoController } from './interfaces/controllers/todo.controller';
       provide: 'TodoRepository',
       useClass: DatabaseTodoRepository,
     },
+    GetTodoUseCase,
     GetTodosUseCase,
     CreateTodoUseCase,
+    UpdateTodoUseCase,
   ],
 })
 export class TodoModel {}

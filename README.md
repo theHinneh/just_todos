@@ -8,7 +8,7 @@ This is an API for a Todo App.
   - Allow users to sign up, log in, and manage their own todos.
   - Use JWT (JSON Web Tokens) or OAuth for secure authentication.
   - Ensure users can only access their own todos.
-- ~~**CRUD Operations**~~
+- **CRUD Operations**
     - ~~Create a new todo item.~~
     - ~~Read/Retrieve todo items (single or multiple).~~
     - Update existing todo items (e.g., mark as completed, edit title/description).
