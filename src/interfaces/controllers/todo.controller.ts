@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { GetTodosUseCase } from '../../application/usecases/get-todos.usecase';
 import { Todo } from '../../domain/entities/todo.entity';
 import { CreateTodoUseCase } from '../../application/usecases/create-todo.usecase';
+import { TodoStatus } from '../../domain/types/todo-status.type';
 
 @Controller('todos')
 export class TodoController {
@@ -11,8 +12,8 @@ export class TodoController {
   ) {}
 
   @Get()
-  async findAll(): Promise<Todo[]> {
-    return this.getTodosUseCase.execute();
+  async findAll(@Query('status') status: TodoStatus): Promise<Todo[]> {
+    return this.getTodosUseCase.execute(status);
   }
 
   @Post()

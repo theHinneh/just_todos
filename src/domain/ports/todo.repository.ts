@@ -1,7 +1,7 @@
 import { Todo } from '../entities/todo.entity';
 
 export interface TodoRepository {
-  findAll(): Promise<Todo[]>;
+  findAll(status?: string): Promise<Todo[]>;
 
   findById(id: string): Promise<Todo | null>;
 

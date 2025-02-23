@@ -4,16 +4,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TodoEntity } from '../entities/todo.entity';
 import { Repository } from 'typeorm';
 import { Todo } from '../../../../domain/entities/todo.entity';
+import * as process from 'node:process';
+import { TodoStatus } from '../../../../domain/types/todo-status.type';
 
 @Injectable()
 export class DatabaseTodoRepository implements TodoRepository {
+  private readonly db = process.env.DB_DATABASE;
+
   constructor(
     @InjectRepository(TodoEntity)
     private readonly typeOrmRepository: Repository<TodoEntity>,
   ) {}
 
-  async findAll(): Promise<Todo[]> {
-    const todos = await this.typeOrmRepository.find();
+  async findAll(status?: TodoStatus): Promise<Todo[]> {
+    let todos: Todo[];
+    if (status) {
+      todos = await this.typeOrmRepository.find({ where: { status } });
+    } else {
+      todos = await this.typeOrmRepository.find();
+    }
+
     return todos.map((v) => this.toDomain(v));
   }
 
