@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { GetTodosUseCase } from '../../application/usecases/todo/get-todos.usecase';
 import { Todo } from '../../domain/entities/todo.entity';
@@ -19,6 +20,8 @@ import { UpdateTodoUseCase } from '../../application/usecases/todo/update-todo.u
 import { DeleteTodoUseCase } from '../../application/usecases/todo/delete-todo.usecase';
 import { SuccessResponse } from '../../domain/dto/success-response.dto';
 import { ErrorResponse } from '../../domain/dto/error-response.dto';
+import { GetSubFromToken } from '../../infrastructure/adapters/jwt/ports/auth.service';
+import { Request } from 'express';
 
 @Controller('todos')
 export class TodoController {
@@ -33,7 +36,9 @@ export class TodoController {
   @Get()
   async findAll(
     @Query('status') status: TodoStatus,
+    @Req() request: Request,
   ): Promise<SuccessResponse<Todo[]>> {
+    const userId = GetSubFromToken(request);
     try {
       const todos = await this.getTodosUseCase.execute(status);
       return new SuccessResponse({

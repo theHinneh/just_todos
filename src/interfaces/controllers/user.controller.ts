@@ -12,6 +12,7 @@ import { ErrorResponse } from '../../domain/dto/error-response.dto';
 import { GenerateTokenService } from '../../infrastructure/adapters/jwt/ports/generate-token.service';
 import { User } from '../../domain/entities/user.entity';
 import { SignupUseCase } from '../../application/usecases/user/signup.usecase';
+import { Public } from '../../infrastructure/config/public-route.decorator';
 
 @Controller('users')
 export class UserController {
@@ -21,6 +22,7 @@ export class UserController {
     private readonly signupUseCase: SignupUseCase,
   ) {}
 
+  @Public()
   @Post('login')
   async login(
     @Body('email') email: string,
@@ -70,6 +72,7 @@ export class UserController {
     }
   }
 
+  @Public()
   @Post('signup')
   async signup(@Body() data: User): Promise<SuccessResponse<UserDto>> {
     try {

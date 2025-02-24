@@ -14,7 +14,6 @@ import { SignupUseCase } from './application/usecases/user/signup.usecase';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      secretOrPrivateKey: process.env.JWT_SECRET,
       signOptions: { expiresIn: '60s' },
     }),
   ],

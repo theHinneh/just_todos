@@ -8,6 +8,8 @@ import { TodoController } from './interfaces/controllers/todo.controller';
 import { GetTodoUseCase } from './application/usecases/todo/get-todo.usecase';
 import { UpdateTodoUseCase } from './application/usecases/todo/update-todo.usecase';
 import { DeleteTodoUseCase } from './application/usecases/todo/delete-todo.usecase';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './infrastructure/adapters/jwt/ports/auth.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TodoEntity])],
@@ -22,6 +24,10 @@ import { DeleteTodoUseCase } from './application/usecases/todo/delete-todo.useca
     CreateTodoUseCase,
     UpdateTodoUseCase,
     DeleteTodoUseCase,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
 })
 export class TodoModel {}
