@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { UserEntity } from './user.entity';
 
 @Entity('todos')
 export class TodoEntity {
@@ -6,6 +13,7 @@ export class TodoEntity {
   id: string;
 
   @Column()
+  @Index()
   title: string;
 
   @Column({ nullable: true })
@@ -22,4 +30,7 @@ export class TodoEntity {
 
   @Column({ type: 'timestamp' })
   updatedAt: Date;
+
+  @ManyToOne(() => UserEntity, (user: UserEntity): TodoEntity[] => user.todos)
+  user: UserEntity;
 }

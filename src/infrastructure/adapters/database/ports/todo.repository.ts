@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { TodoRepository } from '../../../../domain/ports/todo.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TodoEntity } from '../entities/todo.entity';
@@ -17,38 +21,65 @@ export class DatabaseTodoRepository implements TodoRepository {
   ) {}
 
   async findAll(status?: TodoStatus): Promise<Todo[]> {
-    let todos: TodoEntity[];
-    if (status) {
-      todos = await this.typeOrmRepository.find({ where: { status } });
-    } else {
-      todos = await this.typeOrmRepository.find();
+    try {
+      let todos: TodoEntity[];
+      if (status) {
+        todos = await this.typeOrmRepository.find({ where: { status } });
+      } else {
+        todos = await this.typeOrmRepository.find();
+      }
+      return todos.map((v) => this.toDomain(v));
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Could not fetch todos',
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException('Could not fetch todos');
     }
-
-    return todos.map((v) => this.toDomain(v));
   }
 
   async findById(id: string): Promise<Todo | null> {
     const todo = await this.typeOrmRepository.findOne({ where: { id } });
-    return todo ? this.toDomain(todo) : null;
+    if (!todo) {
+      throw new NotFoundException(`Todo with id ${id} not found`);
+    }
+    return this.toDomain(todo);
   }
 
   async create(todo: Todo): Promise<Todo> {
-    const todoEntity = this.toEntity(todo);
-    const savedTodo = await this.typeOrmRepository.save(todoEntity);
-    return this.toDomain(savedTodo);
+    try {
+      const todoEntity = this.toEntity(todo);
+      const savedTodo = await this.typeOrmRepository.save(todoEntity);
+      return this.toDomain(savedTodo);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Could not create todo',
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException('Could not create todo');
+    }
   }
 
   async update(id: string, todo: Partial<Todo>): Promise<Todo | null> {
     await this.typeOrmRepository.update(id, todo);
-    const updatedTodo = await this.typeOrmRepository.findOne({ where: { id } });
+    const updatedTodo = await this.typeOrmRepository.findOne({
+      where: { id },
+    });
     if (!updatedTodo) {
-      return null;
+      throw new NotFoundException(`Todo with id ${id} not found`);
     }
     return this.toDomain(updatedTodo);
   }
 
   async delete(id: string): Promise<void> {
-    await this.typeOrmRepository.delete(id);
+    const result = await this.typeOrmRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Todo with id ${id} not found`);
+    }
   }
 
   private toDomain(todoEntity: TodoEntity): Todo {

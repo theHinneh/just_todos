@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
@@ -18,50 +22,118 @@ export class DatabaseUserRepository implements UserRepository {
   ) {}
 
   async createUser(user: User): Promise<UserDto> {
-    const todoEntity = await this.toEntity(user);
-    const saveUser = await this.typeOrmRepository.save(todoEntity);
-    return this.toDomain(saveUser);
+    try {
+      const todoEntity = await this.toEntity(user);
+      const saveUser = await this.typeOrmRepository.save(todoEntity);
+      return this.toDomain(saveUser);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Could not create user',
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException('Could not create user');
+    }
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.typeOrmRepository.delete(id);
+    try {
+      await this.typeOrmRepository.delete(id);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Could not delete user with id ${id}`,
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException(
+        `Could not delete user with id ${id}`,
+      );
+    }
   }
 
   async getUserById(id: string): Promise<UserDto | null> {
-    const user = await this.typeOrmRepository.findOne({ where: { id } });
-    return user ? this.toDomain(user) : null;
+    try {
+      const user = await this.typeOrmRepository.findOne({ where: { id } });
+      return user ? this.toDomain(user) : null;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Could not fetch user with id ${id}`,
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException(
+        `Could not fetch user with id ${id}`,
+      );
+    }
   }
 
   async getUserByEmail(email: string): Promise<UserDto | null> {
-    const user = await this.typeOrmRepository.findOne({ where: { email } });
-    return user ? this.toDomain(user) : null;
+    try {
+      const user = await this.typeOrmRepository.findOne({ where: { email } });
+      return user ? this.toDomain(user) : null;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Could not fetch user with email ${email}`,
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException(
+        `Could not fetch user with email ${email}`,
+      );
+    }
   }
 
   async getUsers(users: string[]): Promise<UserDto[]> {
-    let usersList: UserEntity[];
-    if (users.length === 0) {
-      usersList = await this.typeOrmRepository.find();
-    } else {
-      usersList = await this.typeOrmRepository.findBy({
-        id: In(users),
-      });
+    try {
+      let usersList: UserEntity[];
+      if (users.length === 0) {
+        usersList = await this.typeOrmRepository.find();
+      } else {
+        usersList = await this.typeOrmRepository.findBy({
+          id: In(users),
+        });
+      }
+      return usersList.map((v) => this.toDomain(v));
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Could not fetch users',
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException('Could not fetch users');
     }
-
-    return usersList.map((v) => this.toDomain(v));
   }
 
   async login(email: string, password: string): Promise<UserDto | null> {
-    const user = await this.typeOrmRepository.findOne({ where: { email } });
-    if (!user) {
-      return null;
-    } else {
-      const isPasswordValid = await VerifyPassword(user.password, password);
-
-      if (!isPasswordValid) {
-        return null;
+    try {
+      const user = await this.typeOrmRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new NotFoundException('Invalid email or password');
       }
+
+      const isPasswordValid = await VerifyPassword(password, user.password);
+      if (!isPasswordValid) {
+        throw new NotFoundException('Invalid email or password');
+      }
+
+      return this.toDomain(user);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Could not login user',
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException('Could not login user');
     }
-    return this.toDomain(user);
   }
 
   async resetPassword(
@@ -70,38 +142,63 @@ export class DatabaseUserRepository implements UserRepository {
     newPassword: string,
     confirmPassword: string,
   ): Promise<string | null> {
-    if (oldPassword === newPassword) {
-      return null;
-    }
-    if (newPassword !== confirmPassword) {
-      return null;
-    }
-
-    const user = await this.typeOrmRepository.findOne({ where: { id } });
-    if (!user) {
-      return null;
-    } else {
-      const isPasswordValid = await VerifyPassword(user.password, oldPassword);
-      if (!isPasswordValid) {
+    try {
+      if (oldPassword === newPassword) {
+        return null;
+      }
+      if (newPassword !== confirmPassword) {
         return null;
       }
 
-      user.password = await EncryptPassword(newPassword);
-      await this.typeOrmRepository.update(id, user);
-    }
+      const user = await this.typeOrmRepository.findOne({ where: { id } });
+      if (!user) {
+        return null;
+      } else {
+        const isPasswordValid = await VerifyPassword(
+          user.password,
+          oldPassword,
+        );
+        if (!isPasswordValid) {
+          return null;
+        }
 
-    return 'success';
+        user.password = await EncryptPassword(newPassword);
+        await this.typeOrmRepository.update(id, user);
+      }
+
+      return 'success';
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Could not reset password',
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException('Could not reset password');
+    }
   }
 
   async updateUser(user: Partial<User>): Promise<UserDto | null> {
-    await this.typeOrmRepository.update(user.id as string, user);
-    const updatedUser = await this.typeOrmRepository.findOne({
-      where: { id: user.id },
-    });
-    if (!updatedUser) {
-      return null;
+    try {
+      await this.typeOrmRepository.update(user.id as string, user);
+      const updatedUser = await this.typeOrmRepository.findOne({
+        where: { id: user.id },
+      });
+      if (!updatedUser) {
+        return null;
+      }
+      return this.toDomain(updatedUser);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Could not update user with id ${user.id}`,
+          error.message,
+        );
+      }
+      throw new InternalServerErrorException(
+        `Could not update user with id ${user.id}`,
+      );
     }
-    return this.toDomain(updatedUser);
   }
 
   private toDomain(userEntity: UserEntity): UserDto {
@@ -110,6 +207,7 @@ export class DatabaseUserRepository implements UserRepository {
       userEntity.firstname,
       userEntity.lastname,
       userEntity.email,
+      userEntity.phone,
     );
   }
 

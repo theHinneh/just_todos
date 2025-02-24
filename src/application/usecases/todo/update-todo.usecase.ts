@@ -9,6 +9,10 @@ export class UpdateTodoUseCase {
   ) {}
 
   async execute(id: string, todo: Partial<Todo>): Promise<Todo | null> {
-    return this.todoRepository.update(id, todo);
+    try {
+      return this.todoRepository.update(id, todo);
+    } catch (error) {
+      throw new Error(`Error updating todo with id ${id}: ${error}`);
+    }
   }
 }

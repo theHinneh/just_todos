@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -15,6 +17,8 @@ import { TodoStatus } from '../../domain/types/todo-status.type';
 import { GetTodoUseCase } from '../../application/usecases/todo/get-todo.usecase';
 import { UpdateTodoUseCase } from '../../application/usecases/todo/update-todo.usecase';
 import { DeleteTodoUseCase } from '../../application/usecases/todo/delete-todo.usecase';
+import { SuccessResponse } from '../../domain/dto/success-response.dto';
+import { ErrorResponse } from '../../domain/dto/error-response.dto';
 
 @Controller('todos')
 export class TodoController {
@@ -27,30 +31,164 @@ export class TodoController {
   ) {}
 
   @Get()
-  async findAll(@Query('status') status: TodoStatus): Promise<Todo[]> {
-    return this.getTodosUseCase.execute(status);
+  async findAll(
+    @Query('status') status: TodoStatus,
+  ): Promise<SuccessResponse<Todo[]>> {
+    try {
+      const todos = await this.getTodosUseCase.execute(status);
+      return new SuccessResponse({
+        data: todos,
+        status: HttpStatus.OK,
+        message: 'Todos retrieved successfully',
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException(
+          new ErrorResponse({
+            status: 'error',
+            message: 'Could not fetch todos',
+            error: error.message,
+          }),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        new ErrorResponse({
+          status: 'error',
+          message: 'Could not fetch todos',
+          error: 'Unknown error',
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get(':id')
-  async findTodo(@Param('id') id: string): Promise<Todo | null> {
-    return this.getTodoUseCase.execute(id);
+  async findTodo(
+    @Param('id') id: string,
+  ): Promise<SuccessResponse<Todo | null>> {
+    try {
+      const todo = await this.getTodoUseCase.execute(id);
+      return new SuccessResponse({
+        data: todo,
+        status: HttpStatus.OK,
+        message: 'Todo retrieved successfully',
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException(
+          new ErrorResponse({
+            status: 'error',
+            message: `Could not fetch todo with id ${id}`,
+            error: error.message,
+          }),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        new ErrorResponse({
+          status: 'error',
+          message: `Could not fetch todo with id ${id}`,
+          error: 'Unknown error',
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post()
-  async create(@Body() todo: Todo): Promise<Todo> {
-    return this.createTodoUseCase.execute(todo);
+  async create(@Body() todo: Todo): Promise<SuccessResponse<Todo>> {
+    try {
+      const createdTodo = await this.createTodoUseCase.execute(todo);
+      return new SuccessResponse({
+        data: createdTodo,
+        status: HttpStatus.CREATED,
+        message: 'Todo created successfully',
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException(
+          new ErrorResponse({
+            status: 'error',
+            message: 'Could not create todo',
+            error: error.message,
+          }),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        new ErrorResponse({
+          status: 'error',
+          message: 'Could not create todo',
+          error: 'Unknown error',
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  @Patch()
+  @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() todo: Partial<Todo>,
-  ): Promise<Todo | null> {
-    return this.updateTodoUseCase.execute(id, todo);
+  ): Promise<SuccessResponse<Todo | null>> {
+    try {
+      const updatedTodo = await this.updateTodoUseCase.execute(id, todo);
+      return new SuccessResponse({
+        data: updatedTodo,
+        status: HttpStatus.OK,
+        message: 'Todo updated successfully',
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException(
+          new ErrorResponse({
+            status: 'error',
+            message: `Could not update todo with id ${id}`,
+            error: error.message,
+          }),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        new ErrorResponse({
+          status: 'error',
+          message: `Could not update todo with id ${id}`,
+          error: 'Unknown error',
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
-    return this.deleteTodoUseCase.execute(id);
+  async delete(@Param('id') id: string): Promise<SuccessResponse<void>> {
+    try {
+      await this.deleteTodoUseCase.execute(id);
+      return new SuccessResponse({
+        data: undefined,
+        status: HttpStatus.OK,
+        message: 'Todo deleted successfully',
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException(
+          new ErrorResponse({
+            status: 'error',
+            message: `Could not delete todo with id ${id}`,
+            error: error.message,
+          }),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        new ErrorResponse({
+          status: 'error',
+          message: `Could not delete todo with id ${id}`,
+          error: 'Unknown error',
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

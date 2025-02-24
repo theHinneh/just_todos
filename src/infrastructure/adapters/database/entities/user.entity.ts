@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { TodoEntity } from './todo.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -6,18 +13,22 @@ export class UserEntity {
   id: string;
 
   @Column()
+  @Index()
   firstname: string;
 
   @Column()
+  @Index()
   lastname: string;
 
-  @Column()
+  @Column({ unique: true })
+  @Index()
   email: string;
 
   @Column()
   password: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
+  @Index()
   phone?: string;
 
   @Column({ type: 'timestamp', update: false })
@@ -25,4 +36,7 @@ export class UserEntity {
 
   @Column({ type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToMany(() => TodoEntity, (todo: TodoEntity): UserEntity => todo.user)
+  todos: TodoEntity[];
 }

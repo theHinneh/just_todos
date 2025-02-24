@@ -9,6 +9,10 @@ export class DeleteTodoUseCase {
   ) {}
 
   async execute(id: string): Promise<void> {
-    return this.todoRepository.delete(id);
+    try {
+      return this.todoRepository.delete(id);
+    } catch (error) {
+      throw new Error(`Error deleting todo with id ${id}: ${error}`);
+    }
   }
 }
