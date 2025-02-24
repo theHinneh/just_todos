@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { TodoRepository } from '../../domain/ports/todo.repository';
-import { Todo } from '../../domain/entities/todo.entity';
+import { TodoRepository } from '../../../domain/ports/todo.repository';
+import { Todo } from '../../../domain/entities/todo.entity';
 
 @Injectable()
 export class CreateTodoUseCase {

@@ -11,8 +11,8 @@ This is an API for a Todo App.
 - **CRUD Operations**
     - ~~Create a new todo item.~~
     - ~~Read/Retrieve todo items (single or multiple).~~
-    - Update existing todo items (e.g., mark as completed, edit title/description).
-    - Delete todo items.
+    - ~~Update existing todo items (e.g., mark as completed, edit title/description)~~.
+    - ~~Delete todo items~~.
 - **Search and Filtering**
 - **Pagination and Sorting**
 - **Reminders and Notifications**

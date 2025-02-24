@@ -1,18 +1,20 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
-import { GetTodosUseCase } from '../../application/usecases/get-todos.usecase';
+import { GetTodosUseCase } from '../../application/usecases/todo/get-todos.usecase';
 import { Todo } from '../../domain/entities/todo.entity';
-import { CreateTodoUseCase } from '../../application/usecases/create-todo.usecase';
+import { CreateTodoUseCase } from '../../application/usecases/todo/create-todo.usecase';
 import { TodoStatus } from '../../domain/types/todo-status.type';
-import { GetTodoUseCase } from '../../application/usecases/get-todo.usecase';
-import { UpdateTodoUseCase } from '../../application/usecases/update-todo.usecase';
+import { GetTodoUseCase } from '../../application/usecases/todo/get-todo.usecase';
+import { UpdateTodoUseCase } from '../../application/usecases/todo/update-todo.usecase';
+import { DeleteTodoUseCase } from '../../application/usecases/todo/delete-todo.usecase';
 
 @Controller('todos')
 export class TodoController {
@@ -21,6 +23,7 @@ export class TodoController {
     private readonly createTodoUseCase: CreateTodoUseCase,
     private readonly getTodoUseCase: GetTodoUseCase,
     private readonly updateTodoUseCase: UpdateTodoUseCase,
+    private readonly deleteTodoUseCase: DeleteTodoUseCase,
   ) {}
 
   @Get()
@@ -44,5 +47,10 @@ export class TodoController {
     @Body() todo: Partial<Todo>,
   ): Promise<Todo | null> {
     return this.updateTodoUseCase.execute(id, todo);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string): Promise<void> {
+    return this.deleteTodoUseCase.execute(id);
   }
 }

@@ -17,7 +17,7 @@ export class DatabaseTodoRepository implements TodoRepository {
   ) {}
 
   async findAll(status?: TodoStatus): Promise<Todo[]> {
-    let todos: Todo[];
+    let todos: TodoEntity[];
     if (status) {
       todos = await this.typeOrmRepository.find({ where: { status } });
     } else {
@@ -68,6 +68,8 @@ export class DatabaseTodoRepository implements TodoRepository {
     todoEntity.description = todo.description;
     todoEntity.status = todo.status;
     todoEntity.dueDate = todo.dueDate;
+    todoEntity.createdAt = new Date();
+    todoEntity.updatedAt = new Date();
     return todoEntity;
   }
 }

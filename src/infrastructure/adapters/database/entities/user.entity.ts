@@ -1,21 +1,24 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('todos')
-export class TodoEntity {
+@Entity('users')
+export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  title: string;
+  firstname: string;
+
+  @Column()
+  lastname: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  password: string;
 
   @Column({ nullable: true })
-  description: string;
-
-  @Column({ default: 'pending' })
-  status: 'pending' | 'completed';
-
-  @Column({ type: 'timestamp' })
-  dueDate: Date;
+  phone?: string;
 
   @Column({ type: 'timestamp', update: false })
   createdAt: Date;
